@@ -80,7 +80,7 @@ myuser <- ""
       select(operatingunit = name3, operatingunituid = id, countryname = country_name, 
              psnu_lvl = prioritization, site_lvl = facility)
     
-    rm(df_lvls, df_uids)
+    rm(df_lvls)
 
 
 # PULL DATA ---------------------------------------------------------------
@@ -105,7 +105,7 @@ myuser <- ""
 # PULL COORDINATES --------------------------------------------------------
 
   #pull hierarchy
-    df_orgs <- purrr::map_dfr(.x = ctry_list$operatingunituid,
+    df_orgs <- purrr::map_dfr(.x = df_uids$id,
                               .f = ~ pull_hierarchy(.x, myuser, mypwd(myuser))) 
     
 
@@ -128,6 +128,7 @@ myuser <- ""
              indicator = `Technical Area`,
              period = Period,
              orgunituid, 
+             orglvl_3, orglvl_4,
              value = Value)
     
   #merge with hierarchy/coordinates
@@ -142,5 +143,5 @@ myuser <- ""
 
 # EXPORT ------------------------------------------------------------------
 
-  write_csv(df_sites, "Dataout/SBU_PEPFAR_USAID_Site_Coordinates_SBU.csv", na = "")    
+  write_csv(df_sites, "Dataout/SBU_PEPFAR_USAID_Site_Coordinates_v2_SBU.csv", na = "")    
     
