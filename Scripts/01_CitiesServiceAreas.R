@@ -29,7 +29,7 @@ mCntries
 # [7] "Antigua & Barbuda"                "Trinidad & Tobago"               
 # [9] "Saint Vincent & the Grenadines"  
 
-cities_loc %>% View()
+#cities_loc %>% View()
 
 # Non State Dept. Names
 mCntries2 <- c("Myanmar",
@@ -58,18 +58,21 @@ cities <- cities_loc %>%
       country.etc ==  "Saint Vincent and The Grenadines" ~ "Saint Vincent & the Grenadines",
       TRUE ~ country.etc
     )
-  ) %>% 
-  left_join(target_psnu, by=c("country.etc" = "countryname")) %>% 
-  filter(!is.na(operatingunit)) %>% 
-  select(7,'country'=2,8:9,1,3:6)
+  ) 
+
+cities <- cities %>% 
+  filter(country.etc %in% cntries) %>% 
+  select("country"=2, 1, 3:6)
+
+# cities <- cities %>% 
+#   right_join(target_psnu, by=c("country.etc" = "countryname")) %>% 
+#   filter(!is.na(operatingunit)) %>% 
+#   select(7,'country'=2,8:9,1,3:6)
 
 # Verify differences
 cities %>% distinct(country) %>% 
   pull() %>% 
   setdiff(cntries)
-
-# Export Target Cities
-#cities %>% write.csv(file = "./Data/Cities_in_PEPFAR_Countries.csv", row.names = FALSE, na = "")
 
 cities %>% 
   filter(is.na(lat) | is.null(lat) | is.na(long) | is.null(long))
@@ -80,7 +83,13 @@ cities %>%
   coord_sf() +
   theme_minimal()
 
+# Export Target Cities
+#cities %>% write.csv(file = "./Data/Cities_in_PEPFAR_Countries.csv", row.names = FALSE, na = "")
 
+
+
+cities %>% 
+  filter(country == 'South Sudan')
 # Create point feature class
 
 
