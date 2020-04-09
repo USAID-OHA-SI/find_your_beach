@@ -131,10 +131,10 @@ myuser <- ""
              value = Value)
     
   #merge with hierarchy/coordinates
-    df_sel <- left_join(df_sel, df_orgs)
+    df_sites <- left_join(df_sel, df_orgs)
   
   #reshape for mapping
-    df_out <- df_sel %>% 
+    df_sites <- df_sites %>% 
       select(indicator, countryname, orgunituid, latitude, longitude) %>% 
       mutate(exists = "X") %>% 
       spread(indicator, exists)
@@ -142,5 +142,5 @@ myuser <- ""
 
 # EXPORT ------------------------------------------------------------------
 
-  write_csv(df_out, "Dataout/SBU_PEPFAR_USAID_Site_Coordinates_SBU.csv", na = "")    
+  write_csv(df_sites, "Dataout/SBU_PEPFAR_USAID_Site_Coordinates_SBU.csv", na = "")    
     
