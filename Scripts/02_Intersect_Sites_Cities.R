@@ -55,13 +55,16 @@ library(mapview)
     st_drop_geometry() %>% 
     group_by(lat, long, name, countryname, pop) %>% count() %>% 
     select(-n) %>% arrange(countryname, name) %>% 
-    filter(!is.na(name))
+    filter(!is.na(name)) %>% 
+    ungroup() %>% 
+    mutate(lrg_city = pop > 40000)
   
   write_csv(final_list, file.path(data_out, "USAID_PEPFAR_city_list.csv"))
   
   # Spot check a country
   cntry <- c("Zambia")
-  ggplot(cities_buffered %>% filter(name %in% check & country == cntry)) + geom_sf(size = 2.5) +
+  ggplot(cities_buffered %>% filter(name %in% check & country == cntry)) + 
+    geom_sf(size = 2.5) +
     geom_sf(data = sites_geo %>% filter(countryname == cntry), size = 2, colour = "#2c7fb8") +
     theme_minimal()
 
