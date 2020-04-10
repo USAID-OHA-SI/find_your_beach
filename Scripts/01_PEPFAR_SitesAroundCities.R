@@ -3,7 +3,7 @@
 ## LICENSE:  MIT
 ## PURPOSE:  Identify Cities within PEPFAR Countries
 
-## Libraries
+# Libraries
 library(tidyverse)
 library(readxl)
 library(sf)
@@ -11,7 +11,7 @@ library(sf)
 # required data
 source("./Scripts/01_CitiesServiceAreas.R")
 
-## PEPFAR Facilities
+# PEPFAR Facilities
 sites <- read_csv("./Data/SBU_PEPFAR_USAID_Site_Coordinates_v2_SBU.csv")
 
 sites %>% head()
