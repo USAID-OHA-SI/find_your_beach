@@ -41,6 +41,8 @@ vignettes/*.pdf
 
 #no data
 *.csv
+*.xlsx
+*.png
 
 #no GIS Data
 GIS/*
