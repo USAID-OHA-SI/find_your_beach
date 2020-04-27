@@ -40,29 +40,29 @@ sites %>%
       Site_TX_CURR = sum(TX_CURR == 'X', na.rm = T)
     )
 
-    sites_in_country %>% 
+  sites_in_country %>% 
+    head()
+  
+  # Export
+  sites_in_country %>% 
+    write_csv(file.path(data_out, "USAID_PEPFAR_Sites_Summary.csv"), na = "")
+
+  # Geo: Valid sites with available services
+  sites_geo <- sites %>% 
+    select(-3) %>% 
+    filter(!is.na(latitude) | !is.na(longitude)) %>% 
+    mutate(
+      latitude = round(latitude, 1),
+      longitude = round(longitude, 1),
+      HTS_TST = ifelse(is.na(HTS_TST), 'No', 'Yes'),
+      LAB_PTCQI = ifelse(is.na(LAB_PTCQI), 'No', 'Yes'),
+      TX_CURR = ifelse(is.na(TX_CURR), 'No', 'Yes')
+    ) 
+
+    sites_geo %>% 
       head()
     
     # Export
-    sites_in_country %>% 
-      write_csv(file.path(data_out, "USAID_PEPFAR_Sites_Summary.csv"), na = "")
+    sites_geo %>% 
+      write_csv(file.path(data_out, "USAID_PEPFAR_Sites_locations.csv"), na = "")
 
-    # Geo: Valid sites with available services
-    sites_geo <- sites %>% 
-      select(-3) %>% 
-      filter(!is.na(latitude) | !is.na(longitude)) %>% 
-      mutate(
-        latitude = round(latitude, 1),
-        longitude = round(longitude, 1),
-        HTS_TST = ifelse(is.na(HTS_TST), 'No', 'Yes'),
-        LAB_PTCQI = ifelse(is.na(LAB_PTCQI), 'No', 'Yes'),
-        TX_CURR = ifelse(is.na(TX_CURR), 'No', 'Yes')
-      ) 
-
-      sites_geo %>% 
-        head()
-      
-      # Export
-      sites_geo %>% 
-        write_csv(file.path(data_out, "USAID_PEPFAR_Sites_locations.csv"), na = "")
-  
