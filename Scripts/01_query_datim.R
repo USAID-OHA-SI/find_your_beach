@@ -4,6 +4,7 @@
 ## PURPOSE:  pull coordinates for USAID sites
 ## NOTE:     drawing heavily from USAID-OHA-SI/right_size/pull_datim
 ## DATE:     2020-04-09
+## UPDATED:  2020-04-27
 
 
 # DEPENDENCIES ------------------------------------------------------------
@@ -140,8 +141,14 @@ myuser <- ""
       mutate(exists = "X") %>% 
       spread(indicator, exists)
 
-
+  
+  #add iso codes
+    df_sites <- df_sites %>% 
+      left_join(iso_map, by = c("countryname" = "operatingunit"))  %>% 
+      select(-regional) %>% 
+      select(countryname, iso, everything())
+    
 # EXPORT ------------------------------------------------------------------
 
-  write_csv(df_sites, "Dataout/SBU_PEPFAR_USAID_Site_Coordinates_v2_SBU.csv", na = "")    
+  write_csv(df_sites, "Data/SBU_PEPFAR_USAID_Site_Coordinates_v2_SBU.csv", na = "")    
     
