@@ -121,7 +121,8 @@ data_out <- "Dataout"
                          "Tanzania, United Republic of" = "Tanzania",
                          "Viet Nam" = "Vietnam"
                          )) %>% 
-    left_join(tsData, ., by = c("Country_Region" = "Name"))
+    left_join(tsData, ., by = c("Country_Region" = "Name")) %>% 
+    rename(countryname = Country_Region)
   
 # TODOs ---------------------------------------------------------------
   
