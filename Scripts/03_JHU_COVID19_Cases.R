@@ -53,6 +53,8 @@ data_out <- "Dataout"
   tsCData <- tsCData %>% 
     gather(ddate, cases, -c(1:4)) %>% 
     select(-1) %>% 
+    mutate(ddate = as.Date(ddate, "%m/%d/%y")) %>% 
+    arrange(`Country/Region`, ddate) %>% 
     group_by(`Country/Region`, Lat, Long, ddate) %>% 
     summarise(
       cases = sum(cases, na.rm = F)
@@ -69,6 +71,8 @@ data_out <- "Dataout"
   tsRData <- tsRData %>% 
     gather(ddate, cases, -c(1:4)) %>% 
     select(-1) %>% 
+    mutate(ddate = as.Date(ddate, "%m/%d/%y")) %>% 
+    arrange(`Country/Region`, ddate) %>% 
     group_by(`Country/Region`, Lat, Long, ddate) %>% 
     summarise(
       cases = sum(cases, na.rm = F)
@@ -85,6 +89,8 @@ data_out <- "Dataout"
   tsDData <- tsDData %>% 
     gather(ddate, cases, -c(1:4)) %>% 
     select(-1) %>% 
+    mutate(ddate = as.Date(ddate, "%m/%d/%y")) %>% 
+    arrange(`Country/Region`, ddate) %>% 
     group_by(`Country/Region`, Lat, Long, ddate) %>% 
     summarise(
       cases = sum(cases, na.rm = F)
@@ -100,10 +106,7 @@ data_out <- "Dataout"
   # Merge all tables
   tsData <- tsCData %>% 
     rbind(tsDData) %>% 
-    rbind(tsRData) %>%
-    mutate(
-      ddate = mdy(ddate)
-    ) %>%
+    rbind(tsRData) %>% 
     rename(Country_Region = `Country/Region`) 
 
   # Validate countries (No admin2)
@@ -122,7 +125,14 @@ data_out <- "Dataout"
                          "Viet Nam" = "Vietnam"
                          )) %>% 
     left_join(tsData, ., by = c("Country_Region" = "Name")) %>% 
-    rename(countryname = Country_Region)
+    rename(countryname = Country_Region) %>% 
+    arrange(countryname, ddate, category) %>% 
+    group_by(countryname, category) %>% 
+    mutate(ten_mark = if_else(cumcases >= 10, 1, 0)) %>% 
+    arrange(countryname, ddate, category) %>% 
+    group_by(countryname, category) %>% 
+    mutate(days_since_ten = cumsum(ten_mark)) %>% 
+    ungroup()
   
 # TODOs ---------------------------------------------------------------
   
