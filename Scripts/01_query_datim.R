@@ -49,14 +49,14 @@ myuser <- ""
         )
     } else if(type == "LAB"){
       type_url <- 
-        paste0("dimension=pe:2018Oct&", #period
+        paste0("dimension=pe:2019Q3&", #period
                "dimension=IeMmjHyBUpi:Jh0jDM5yQ2E&", #Targets/Results - Results W8imnja2Owd,Jh0jDM5yQ2E
                "dimension=LxhLO68FcXm:scxfIjoA6nt&" #technical area, LAB_PTCQI
         )
       
     } else if(type == "SC_STOCK"){
       type_url <- 
-        paste0("dimension=pe:2018Oct&", #period
+        paste0("dimension=pe:2019Q3&", #period
                "dimension=IeMmjHyBUpi:Jh0jDM5yQ2E&", #Targets/Results - Results W8imnja2Owd,Jh0jDM5yQ2E
                "dimension=LxhLO68FcXm:Wcg6Zu3y7OE&" #technical area, SC_STOCK
         )
@@ -140,6 +140,7 @@ myuser <- ""
              indicator = `Technical Area`,
              period = Period,
              orgunituid, 
+             region = orglvl_2,
              orglvl_3, orglvl_4,
              value = Value)
     
@@ -148,7 +149,7 @@ myuser <- ""
   
   #reshape for mapping
     df_sites <- df_sites %>% 
-      select(indicator, countryname, orgunituid, latitude, longitude) %>% 
+      select(indicator, region, countryname, orgunituid, latitude, longitude) %>% 
       mutate(exists = "X") %>% 
       spread(indicator, exists)
 
@@ -163,4 +164,23 @@ myuser <- ""
 
   write_csv(df_sites, "Data/SBU_PEPFAR_USAID_Site_Coordinates_v3_SBU.csv", na = "")    
 
+    
+    
+    
+    df_lng <- df_sites %>% 
+      gather(indicator, reported, HTS_TST, LAB_PTCQI, SC_STOCK, TX_CURR, na.rm = TRUE)
+    
+    df_distinct <- df_sites %>% 
+      distinct(countryname, orgunituid) %>% 
+      count(countryname, name = "total")
+      
+      
+    df_lng %>% 
+      count(region, countryname, indicator) %>% 
+      spread(indicator, n) %>% 
+      left_join(df_distinct) %>% 
+      select(region, countryname, total, HTS_TST, TX_CURR, LAB_PTCQI, SC_STOCK) %>% 
+      arrange(region, countryname) %>% 
+      janitor::adorn_totals()
+      print(n = Inf)
   
