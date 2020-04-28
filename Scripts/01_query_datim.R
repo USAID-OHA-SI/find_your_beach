@@ -52,6 +52,7 @@ myuser <- ""
         paste0("dimension=pe:2019Q3&", #period
                "dimension=IeMmjHyBUpi:Jh0jDM5yQ2E&", #Targets/Results - Results W8imnja2Owd,Jh0jDM5yQ2E
                "dimension=LxhLO68FcXm:scxfIjoA6nt&" #technical area, LAB_PTCQI
+               "dimension=HWPJnUTMjEq:T7Z0TtiWqyu;SG4w1HBS23B;MC7Q6BN0Xw9;hfaBo0nrQok;oBbMk5GjX4a;PJEPs8sHAk5&" #Disaggregation Type = Lab/CQI, Lab/PT, Lab/TestVolume, POCT/CQI, POCT/PT, POCT/TestVolume"
         )
       
     } else if(type == "SC_STOCK"){
