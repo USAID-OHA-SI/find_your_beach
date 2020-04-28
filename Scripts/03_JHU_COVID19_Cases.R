@@ -36,7 +36,7 @@ data_out <- "Dataout"
 
 
 # READ Data -------------------------------------------------
-
+  
   # Confirmed
   tsCData <- vroom(file.path(paste0(jhuRepo, tsCases)))
   
@@ -47,71 +47,50 @@ data_out <- "Dataout"
   tsDData <- vroom(file.path(paste0(jhuRepo, tsDeaths)))
 
 
+# Munge function ----------------------------------------------------------
+  # Reshape, coerce date col to dates for sorting, and create daily cases
+  
+  reshapify <- function(df) {
+   df %>% 
+      pivot_longer(-c(1:4),
+        names_to = "date",
+        values_to = "cases") %>% 
+      rename(countryname = `Country/Region`) %>% 
+      mutate(date = as.Date(date, "%m/%d/%y")) %>% 
+      group_by(countryname, date) %>% 
+      summarise(cases = sum(cases, na.rm = TRUE)) %>% 
+      ungroup() %>% 
+      arrange(countryname, date) %>% 
+      group_by(countryname) %>% 
+      mutate(daily_cases = cases - lag(cases)) %>% 
+      ungroup()
+  }
+  
 # Data Cleaning ------------------------------------------------
 
   # Confirmed
   tsCData <- tsCData %>% 
-    gather(ddate, cases, -c(1:4)) %>% 
-    select(-1) %>% 
-    mutate(ddate = as.Date(ddate, "%m/%d/%y")) %>% 
-    arrange(`Country/Region`, ddate) %>% 
-    group_by(`Country/Region`, Lat, Long, ddate) %>% 
-    summarise(
-      cases = sum(cases, na.rm = F)
-    ) %>% 
-    mutate(
-      cumcases = cumsum(cases)
-    ) %>% 
-    ungroup() %>% 
-    mutate(
-      category = 'Confirmed'
-    ) 
+    reshapify() %>% 
+    mutate(category = 'Confirmed') 
 
   # Recovered
   tsRData <- tsRData %>% 
-    gather(ddate, cases, -c(1:4)) %>% 
-    select(-1) %>% 
-    mutate(ddate = as.Date(ddate, "%m/%d/%y")) %>% 
-    arrange(`Country/Region`, ddate) %>% 
-    group_by(`Country/Region`, Lat, Long, ddate) %>% 
-    summarise(
-      cases = sum(cases, na.rm = F)
-    ) %>% 
-    mutate(
-      cumcases = cumsum(cases)
-    ) %>%  
-    ungroup() %>% 
-    mutate(
-      category = 'Recovered'
-    ) 
+    reshapify() %>% 
+    mutate(category = 'Recovered') 
   
   # Deaths
   tsDData <- tsDData %>% 
-    gather(ddate, cases, -c(1:4)) %>% 
-    select(-1) %>% 
-    mutate(ddate = as.Date(ddate, "%m/%d/%y")) %>% 
-    arrange(`Country/Region`, ddate) %>% 
-    group_by(`Country/Region`, Lat, Long, ddate) %>% 
-    summarise(
-      cases = sum(cases, na.rm = F)
-    ) %>% 
-    mutate(
-      cumcases = cumsum(cases)
-    ) %>% 
-    ungroup() %>% 
-    mutate(
-      category = 'Deaths'
-    ) 
+    reshapify %>% 
+    mutate(category = 'Deaths') 
 
   # Merge all tables
-  tsData <- tsCData %>% 
-    rbind(tsDData) %>% 
-    rbind(tsRData) %>% 
-    rename(Country_Region = `Country/Region`) 
+  tsData <- 
+    tsCData %>% 
+    bind_rows(list(tsDData, tsRData))
 
   # Validate countries (No admin2)
   tsData %>% 
-    distinct(Country_Region) %>% 
+    distinct(countryname) %>% 
     pull()
   
   tsData <- ISO_3166_1 %>% 
@@ -124,12 +103,11 @@ data_out <- "Dataout"
                          "Tanzania, United Republic of" = "Tanzania",
                          "Viet Nam" = "Vietnam"
                          )) %>% 
-    left_join(tsData, ., by = c("Country_Region" = "Name")) %>% 
-    rename(countryname = Country_Region) %>% 
-    arrange(countryname, ddate, category) %>% 
+    left_join(tsData, ., by = c("countryname" = "Name")) %>% 
+    arrange(countryname, date, category) %>% 
     group_by(countryname, category) %>% 
-    mutate(ten_mark = if_else(cumcases >= 10, 1, 0)) %>% 
-    arrange(countryname, ddate, category) %>% 
+    mutate(ten_mark = if_else(cases >= 10, 1, 0)) %>% 
+    arrange(countryname, date, category) %>% 
     group_by(countryname, category) %>% 
     mutate(days_since_ten = cumsum(ten_mark)) %>% 
     ungroup()
