@@ -9,6 +9,7 @@
 library(tidyverse)
 library(vroom)
 library(lubridate)
+library(ISOcodes)
 
 
 # GLOBAL VARIABLES --------------------------------------------------------
@@ -110,6 +111,17 @@ data_out <- "Dataout"
     distinct(Country_Region) %>% 
     pull()
   
+  tsData <- ISO_3166_1 %>% 
+    select(Name, iso = Alpha_3) %>%
+    mutate(Name = recode(Name, 
+                         "Congo, The Democratic Republic of the" = "Congo (Kinshasa)",
+                         "Myanmar" = "Burma",
+                         "Côte d'Ivoire" = "Cote d'Ivoire",
+                         "Lao People's Democratic Republic" = "Laos",
+                         "Tanzania, United Republic of" = "Tanzania",
+                         "Viet Nam" = "Vietnam"
+                         )) %>% 
+    left_join(tsData, ., by = c("Country_Region" = "Name"))
   
 # TODOs ---------------------------------------------------------------
   
