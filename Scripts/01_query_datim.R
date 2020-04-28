@@ -4,7 +4,7 @@
 ## PURPOSE:  pull coordinates for USAID sites
 ## NOTE:     drawing heavily from USAID-OHA-SI/right_size/pull_datim
 ## DATE:     2020-04-09
-## UPDATED:  2020-04-27
+## UPDATED:  2020-04-28
 
 
 # DEPENDENCIES ------------------------------------------------------------
@@ -54,7 +54,14 @@ myuser <- ""
                "dimension=LxhLO68FcXm:scxfIjoA6nt&" #technical area, LAB_PTCQI
         )
       
-    }
+    } else if(type == "SC_STOCK"){
+      type_url <- 
+        paste0("dimension=pe:2018Oct&", #period
+               "dimension=IeMmjHyBUpi:Jh0jDM5yQ2E&", #Targets/Results - Results W8imnja2Owd,Jh0jDM5yQ2E
+               "dimension=LxhLO68FcXm:Wcg6Zu3y7OE&" #technical area, SC_STOCK
+        )
+      
+    } 
     
     end_url <- "displayProperty=SHORTNAME&skipMeta=false&hierarchyMeta=true"
     
@@ -101,6 +108,10 @@ myuser <- ""
                        .y = ctry_list$site_lvl, 
                        .f = ~ query_datim(.x, .y, "LAB", myuser, mypwd(myuser)))
     
+    df_stk <- map2_dfr(.x = ctry_list$operatingunituid, 
+                       .y = ctry_list$site_lvl, 
+                       .f = ~ query_datim(.x, .y, "SC_STOCK", myuser, mypwd(myuser)))
+    
   
 
 # PULL COORDINATES --------------------------------------------------------
@@ -120,7 +131,7 @@ myuser <- ""
       ungroup()
     
   #append data together
-    df_full <- bind_rows(df_tx, df_hts, df_lab)
+    df_full <- bind_rows(df_tx, df_hts, df_lab, df_stk)
 
   #limit output variables
     df_sel <- df_full %>% 
@@ -150,5 +161,6 @@ myuser <- ""
     
 # EXPORT ------------------------------------------------------------------
 
-  write_csv(df_sites, "Data/SBU_PEPFAR_USAID_Site_Coordinates_v2_SBU.csv", na = "")    
-    
+  write_csv(df_sites, "Data/SBU_PEPFAR_USAID_Site_Coordinates_v3_SBU.csv", na = "")    
+
+  
