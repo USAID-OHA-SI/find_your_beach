@@ -4,7 +4,7 @@
 ## PURPOSE:  pull coordinates for USAID sites
 ## NOTE:     drawing heavily from USAID-OHA-SI/right_size/pull_datim
 ## DATE:     2020-04-09
-## UPDATED:  2020-04-27
+## UPDATED:  2020-04-28
 
 
 # DEPENDENCIES ------------------------------------------------------------
@@ -49,12 +49,20 @@ myuser <- ""
         )
     } else if(type == "LAB"){
       type_url <- 
-        paste0("dimension=pe:2018Oct&", #period
+        paste0("dimension=pe:2019Q3&", #period
                "dimension=IeMmjHyBUpi:Jh0jDM5yQ2E&", #Targets/Results - Results W8imnja2Owd,Jh0jDM5yQ2E
-               "dimension=LxhLO68FcXm:scxfIjoA6nt&" #technical area, LAB_PTCQI
+               "dimension=LxhLO68FcXm:scxfIjoA6nt&", #technical area, LAB_PTCQI
+               "dimension=HWPJnUTMjEq:T7Z0TtiWqyu;SG4w1HBS23B;MC7Q6BN0Xw9;hfaBo0nrQok;oBbMk5GjX4a;PJEPs8sHAk5&" #Disaggregation Type = Lab/CQI, Lab/PT, Lab/TestVolume, POCT/CQI, POCT/PT, POCT/TestVolume"
         )
       
-    }
+    } else if(type == "SC_STOCK"){
+      type_url <- 
+        paste0("dimension=pe:2019Q3&", #period
+               "dimension=IeMmjHyBUpi:Jh0jDM5yQ2E&", #Targets/Results - Results W8imnja2Owd,Jh0jDM5yQ2E
+               "dimension=LxhLO68FcXm:Wcg6Zu3y7OE&" #technical area, SC_STOCK
+        )
+      
+    } 
     
     end_url <- "displayProperty=SHORTNAME&skipMeta=false&hierarchyMeta=true"
     
@@ -101,6 +109,10 @@ myuser <- ""
                        .y = ctry_list$site_lvl, 
                        .f = ~ query_datim(.x, .y, "LAB", myuser, mypwd(myuser)))
     
+    df_stk <- map2_dfr(.x = ctry_list$operatingunituid, 
+                       .y = ctry_list$site_lvl, 
+                       .f = ~ query_datim(.x, .y, "SC_STOCK", myuser, mypwd(myuser)))
+    
   
 
 # PULL COORDINATES --------------------------------------------------------
@@ -119,8 +131,16 @@ myuser <- ""
       summarise_if(is.double, sum, na.rm = TRUE) %>% 
       ungroup()
     
+  #remove disaggs from lab
+    df_lab <- df_lab %>% 
+      filter(!`Disaggregation Type` %in% c("Lab/TestVolume", "POCT/TestVolume")) %>% 
+      select(-`Disaggregation Type`) %>% 
+      group_by_if(is.character) %>% 
+      summarise_if(is.double, sum, na.rm = TRUE) %>% 
+      ungroup()
+    
   #append data together
-    df_full <- bind_rows(df_tx, df_hts, df_lab)
+    df_full <- bind_rows(df_tx, df_hts, df_lab, df_stk)
 
   #limit output variables
     df_sel <- df_full %>% 
@@ -129,18 +149,13 @@ myuser <- ""
              indicator = `Technical Area`,
              period = Period,
              orgunituid, 
+             region = orglvl_2,
              orglvl_3, orglvl_4,
              value = Value)
     
   #merge with hierarchy/coordinates
     df_sites <- left_join(df_sel, df_orgs)
   
-  #reshape for mapping
-    df_sites <- df_sites %>% 
-      select(indicator, countryname, orgunituid, latitude, longitude) %>% 
-      mutate(exists = "X") %>% 
-      spread(indicator, exists)
-
   
   #add iso codes
     df_sites <- df_sites %>% 
@@ -148,7 +163,48 @@ myuser <- ""
       select(-regional) %>% 
       select(countryname, iso, everything())
     
+  #keep long version  
+    ### NOTE: VALUE IS NOT VOLUMNE FOR LAB
+    df_sites_lng <- df_sites %>% 
+      select(countryname, iso, region, orgunituid, latitude, longitude, indicator, value)
+      
+  #reshape for mapping
+    df_sites_wide <- df_sites %>% 
+      select(countryname, iso, region, orgunituid, latitude, longitude, indicator) %>% 
+      mutate(exists = "X") %>% 
+      spread(indicator, exists)
+
+    
+  
+    
 # EXPORT ------------------------------------------------------------------
 
-  write_csv(df_sites, "Data/SBU_PEPFAR_USAID_Site_Coordinates_v2_SBU.csv", na = "")    
+  write_csv(df_sites_wide, "Data/SBU_PEPFAR_USAID_Site_Coordinates_v3_SBU.csv", na = "")    
+  write_csv(df_sites_lng, "Data/SBU_PEPFAR_USAID_Site_Coordinates_v3_long_SBU.csv", na = "")    
+
     
+    
+
+    # #checks
+    # df_lng <- df_sites %>% 
+    #   gather(indicator, reported, HTS_TST, LAB_PTCQI, SC_STOCK, TX_CURR, na.rm = TRUE)
+    # 
+    # df_distinct <- df_sites %>% 
+    #   distinct(countryname, orgunituid) %>% 
+    #   count(countryname, name = "total")
+    #   
+    #   
+    # df_lng %>% 
+    #   count(region, countryname, indicator) %>% 
+    #   spread(indicator, n) %>% 
+    #   left_join(df_distinct) %>% 
+    #   select(region, countryname, total, HTS_TST, TX_CURR, LAB_PTCQI, SC_STOCK) %>% 
+    #   arrange(region, countryname) %>% 
+    #   janitor::adorn_totals()
+    #   print(n = Inf)
+    #   
+    #   
+    #   df_stk %>% 
+    #     filter(orglvl_4 == "Guatemala") %>% 
+    #     select(`Organisation unit`, orgunituid, Value)
+  

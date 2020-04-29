@@ -18,7 +18,7 @@ data_out <- "Dataout"
 
 # IMPORT DATA -------------------------------------------------------------
 
-sites <- vroom(file.path(data_in, "SBU_PEPFAR_USAID_Site_Coordinates_v2_SBU.csv"))
+sites <- vroom(file.path(data_in, "SBU_PEPFAR_USAID_Site_Coordinates_v3_SBU.csv"))
 
 sites %>% 
   glimpse()
@@ -37,8 +37,10 @@ sites %>%
       site_all = n(),
       Site_HTS_TST = sum(HTS_TST == 'X', na.rm = T),
       Site_LAB_PTCQI = sum(LAB_PTCQI == 'X', na.rm = T),
-      Site_TX_CURR = sum(TX_CURR == 'X', na.rm = T)
-    )
+      Site_TX_CURR = sum(TX_CURR == 'X', na.rm = T),
+      Site_SC_STOCK = sum(SC_STOCK == 'X', na.rm = T)
+    ) %>% 
+    ungroup()
 
   sites_in_country %>% 
     head()
@@ -56,7 +58,8 @@ sites %>%
       longitude = round(longitude, 1),
       HTS_TST = ifelse(is.na(HTS_TST), 'No', 'Yes'),
       LAB_PTCQI = ifelse(is.na(LAB_PTCQI), 'No', 'Yes'),
-      TX_CURR = ifelse(is.na(TX_CURR), 'No', 'Yes')
+      TX_CURR = ifelse(is.na(TX_CURR), 'No', 'Yes'),
+      SC_STOCK = ifelse(is.na(SC_STOCK), 'No', 'Yes')
     ) 
 
     sites_geo %>% 
