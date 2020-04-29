@@ -51,7 +51,7 @@ myuser <- ""
       type_url <- 
         paste0("dimension=pe:2019Q3&", #period
                "dimension=IeMmjHyBUpi:Jh0jDM5yQ2E&", #Targets/Results - Results W8imnja2Owd,Jh0jDM5yQ2E
-               "dimension=LxhLO68FcXm:scxfIjoA6nt&" #technical area, LAB_PTCQI
+               "dimension=LxhLO68FcXm:scxfIjoA6nt&", #technical area, LAB_PTCQI
                "dimension=HWPJnUTMjEq:T7Z0TtiWqyu;SG4w1HBS23B;MC7Q6BN0Xw9;hfaBo0nrQok;oBbMk5GjX4a;PJEPs8sHAk5&" #Disaggregation Type = Lab/CQI, Lab/PT, Lab/TestVolume, POCT/CQI, POCT/PT, POCT/TestVolume"
         )
       
@@ -167,21 +167,27 @@ myuser <- ""
 
     
     
-    
-    df_lng <- df_sites %>% 
-      gather(indicator, reported, HTS_TST, LAB_PTCQI, SC_STOCK, TX_CURR, na.rm = TRUE)
-    
-    df_distinct <- df_sites %>% 
-      distinct(countryname, orgunituid) %>% 
-      count(countryname, name = "total")
-      
-      
-    df_lng %>% 
-      count(region, countryname, indicator) %>% 
-      spread(indicator, n) %>% 
-      left_join(df_distinct) %>% 
-      select(region, countryname, total, HTS_TST, TX_CURR, LAB_PTCQI, SC_STOCK) %>% 
-      arrange(region, countryname) %>% 
-      janitor::adorn_totals()
-      print(n = Inf)
+
+    # #checks
+    # df_lng <- df_sites %>% 
+    #   gather(indicator, reported, HTS_TST, LAB_PTCQI, SC_STOCK, TX_CURR, na.rm = TRUE)
+    # 
+    # df_distinct <- df_sites %>% 
+    #   distinct(countryname, orgunituid) %>% 
+    #   count(countryname, name = "total")
+    #   
+    #   
+    # df_lng %>% 
+    #   count(region, countryname, indicator) %>% 
+    #   spread(indicator, n) %>% 
+    #   left_join(df_distinct) %>% 
+    #   select(region, countryname, total, HTS_TST, TX_CURR, LAB_PTCQI, SC_STOCK) %>% 
+    #   arrange(region, countryname) %>% 
+    #   janitor::adorn_totals()
+    #   print(n = Inf)
+    #   
+    #   
+    #   df_stk %>% 
+    #     filter(orglvl_4 == "Guatemala") %>% 
+    #     select(`Organisation unit`, orgunituid, Value)
   
