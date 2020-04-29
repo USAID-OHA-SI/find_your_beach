@@ -18,7 +18,7 @@ data_out <- "Dataout"
 
 # IMPORT DATA -------------------------------------------------------------
 
-sites <- vroom(file.path(data_in, "SBU_PEPFAR_USAID_Site_Coordinates_v2_SBU.csv"))
+sites <- vroom(file.path(data_in, "SBU_PEPFAR_USAID_Site_Coordinates_v3_SBU.csv"))
 
 sites %>% 
   glimpse()
