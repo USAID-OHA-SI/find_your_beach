@@ -4,7 +4,7 @@
 ## PURPOSE:  pull coordinates for USAID sites
 ## NOTE:     drawing heavily from USAID-OHA-SI/right_size/pull_datim
 ## DATE:     2020-04-09
-## UPDATED:  2020-04-28
+## UPDATED:  2020-04-29
 
 
 # DEPENDENCIES ------------------------------------------------------------
@@ -137,10 +137,12 @@ myuser <- ""
     
   #remove disaggs from lab
     df_lab <- df_lab %>% 
-      filter(!`Disaggregation Type` %in% c("Lab/TestVolume", "POCT/TestVolume")) %>% 
-      select(-`Disaggregation Type`) %>% 
+      spread(`Disaggregation Type`, Value) %>% 
+      rowwise() %>% 
+      mutate(Value = sum(`Lab/TestVolume`, `POCT/TestVolume`, na.rm = TRUE)) %>% 
+      ungroup() %>% 
       group_by_if(is.character) %>% 
-      summarise_if(is.double, sum, na.rm = TRUE) %>% 
+      summarise_at(vars(Value), sum, na.rm = TRUE) %>% 
       ungroup()
     
   #append data together
@@ -168,7 +170,6 @@ myuser <- ""
       select(countryname, iso, everything())
     
   #keep long version  
-    ### NOTE: VALUE IS NOT VOLUMNE FOR LAB
     df_sites_lng <- df_sites %>% 
       select(countryname, iso, region, orgunituid, latitude, longitude, indicator, value)
       
@@ -189,25 +190,24 @@ myuser <- ""
     
     
 
-    #checks
-    df_lng <- df_sites %>%
-      gather(indicator, reported, HTS_TST, LAB_PTCQI, SC_STOCK, TX_CURR, na.rm = TRUE)
+    # #checks
+    # df_lng <- df_sites %>%
+    #   gather(indicator, reported, HTS_TST, LAB_PTCQI, SC_STOCK, TX_CURR, na.rm = TRUE)
+    # 
+    # df_distinct <- df_sites %>%
+    #   distinct(countryname, orgunituid) %>%
+    #   count(countryname, name = "total")
+    # 
+    # 
+    # df_lng %>%
+    #   count(region, countryname, indicator) %>%
+    #   spread(indicator, n) %>%
+    #   left_join(df_distinct) %>%
+    #   select(region, countryname, total, HTS_TST, TX_CURR, LAB_PTCQI, SC_STOCK) %>%
+    #   arrange(region, countryname) %>%
+    #   janitor::adorn_totals()
+    #   print(n = Inf)
 
-    df_distinct <- df_sites %>%
-      distinct(countryname, orgunituid) %>%
-      count(countryname, name = "total")
-
-
-    df_lng %>%
-      count(region, countryname, indicator) %>%
-      spread(indicator, n) %>%
-      left_join(df_distinct) %>%
-      select(region, countryname, total, HTS_TST, TX_CURR, LAB_PTCQI, SC_STOCK) %>%
-      arrange(region, countryname) %>%
-      janitor::adorn_totals()
-      print(n = Inf)
-
-
-      df_stk %>%
-        filter(orglvl_4 == "Guatemala") %>%
-        select(`Organisation unit`, orgunituid, Value)
+      
+      
+        
