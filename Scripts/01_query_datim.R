@@ -163,7 +163,8 @@ myuser <- ""
       select(-regional) %>% 
       select(countryname, iso, everything())
     
-  #keep long version
+  #keep long version  
+    ### NOTE: VALUE IS NOT VOLUMNE FOR LAB
     df_sites_lng <- df_sites %>% 
       select(countryname, iso, region, orgunituid, latitude, longitude, indicator, value)
       
