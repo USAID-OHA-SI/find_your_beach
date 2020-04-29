@@ -131,6 +131,14 @@ myuser <- ""
       summarise_if(is.double, sum, na.rm = TRUE) %>% 
       ungroup()
     
+  #remove disaggs from lab
+    df_lab <- df_lab %>% 
+      filter(!`Disaggregation Type` %in% c("Lab/TestVolume", "POCT/TestVolume")) %>% 
+      select(-`Disaggregation Type`) %>% 
+      group_by_if(is.character) %>% 
+      summarise_if(is.double, sum, na.rm = TRUE) %>% 
+      ungroup()
+    
   #append data together
     df_full <- bind_rows(df_tx, df_hts, df_lab, df_stk)
 
@@ -148,12 +156,6 @@ myuser <- ""
   #merge with hierarchy/coordinates
     df_sites <- left_join(df_sel, df_orgs)
   
-  #reshape for mapping
-    df_sites <- df_sites %>% 
-      select(indicator, region, countryname, orgunituid, latitude, longitude) %>% 
-      mutate(exists = "X") %>% 
-      spread(indicator, exists)
-
   
   #add iso codes
     df_sites <- df_sites %>% 
@@ -161,9 +163,23 @@ myuser <- ""
       select(-regional) %>% 
       select(countryname, iso, everything())
     
+  #keep long version
+    df_sites_lng <- df_sites %>% 
+      select(countryname, iso, region, orgunituid, latitude, longitude, indicator, value)
+      
+  #reshape for mapping
+    df_sites_wide <- df_sites %>% 
+      select(countryname, iso, region, orgunituid, latitude, longitude, indicator) %>% 
+      mutate(exists = "X") %>% 
+      spread(indicator, exists)
+
+    
+  
+    
 # EXPORT ------------------------------------------------------------------
 
-  write_csv(df_sites, "Data/SBU_PEPFAR_USAID_Site_Coordinates_v3_SBU.csv", na = "")    
+  write_csv(df_sites_wide, "Data/SBU_PEPFAR_USAID_Site_Coordinates_v3_SBU.csv", na = "")    
+  write_csv(df_sites_lng, "Data/SBU_PEPFAR_USAID_Site_Coordinates_v3_long_SBU.csv", na = "")    
 
     
     
