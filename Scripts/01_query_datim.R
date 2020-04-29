@@ -4,7 +4,7 @@
 ## PURPOSE:  pull coordinates for USAID sites
 ## NOTE:     drawing heavily from USAID-OHA-SI/right_size/pull_datim
 ## DATE:     2020-04-09
-## UPDATED:  2020-04-28
+## UPDATED:  2020-04-29
 
 
 # DEPENDENCIES ------------------------------------------------------------
@@ -60,6 +60,10 @@ myuser <- ""
         paste0("dimension=pe:2019Q3&", #period
                "dimension=IeMmjHyBUpi:Jh0jDM5yQ2E&", #Targets/Results - Results W8imnja2Owd,Jh0jDM5yQ2E
                "dimension=LxhLO68FcXm:Wcg6Zu3y7OE&" #technical area, SC_STOCK
+               #categoryoption combo for components
+               # "dimension=dx:FDlLTtGvb6d.M19pNu5afz5;FDlLTtGvb6d.ghnHGxQGzsU;FDlLTtGvb6d.f1MsjgHEA1F;FDlLTtGvb6d.FsVyz3CsO23;FDlLTtGvb6d.xQzCIqxQrOD;FDlLTtGvb6d.zpAeF87eVrG;FDlLTtGvb6d.hEBJzAkrIVn;qQ7UK8XhpHm.M19pNu5afz5;",
+               #   "qQ7UK8XhpHm.ghnHGxQGzsU;qQ7UK8XhpHm.f1MsjgHEA1F;qQ7UK8XhpHm.FsVyz3CsO23;qQ7UK8XhpHm.xQzCIqxQrOD;qQ7UK8XhpHm.zpAeF87eVrG;qQ7UK8XhpHm.hEBJzAkrIVn;x0qTD4eEKoS.M19pNu5afz5;x0qTD4eEKoS.ghnHGxQGzsU;x0qTD4eEKoS.f1MsjgHEA1F;",
+               #   "x0qTD4eEKoS.FsVyz3CsO23;x0qTD4eEKoS.xQzCIqxQrOD;x0qTD4eEKoS.zpAeF87eVrG;x0qTD4eEKoS.hEBJzAkrIVn;zNY7jEoat5w.M19pNu5afz5;zNY7jEoat5w.ghnHGxQGzsU;zNY7jEoat5w.f1MsjgHEA1F;zNY7jEoat5w.FsVyz3CsO23;zNY7jEoat5w.xQzCIqxQrOD;zNY7jEoat5w.zpAeF87eVrG;zNY7jEoat5w.hEBJzAkrIVn&"
         )
       
     } 
@@ -133,10 +137,12 @@ myuser <- ""
     
   #remove disaggs from lab
     df_lab <- df_lab %>% 
-      filter(!`Disaggregation Type` %in% c("Lab/TestVolume", "POCT/TestVolume")) %>% 
-      select(-`Disaggregation Type`) %>% 
+      spread(`Disaggregation Type`, Value) %>% 
+      rowwise() %>% 
+      mutate(Value = sum(`Lab/TestVolume`, `POCT/TestVolume`, na.rm = TRUE)) %>% 
+      ungroup() %>% 
       group_by_if(is.character) %>% 
-      summarise_if(is.double, sum, na.rm = TRUE) %>% 
+      summarise_at(vars(Value), sum, na.rm = TRUE) %>% 
       ungroup()
     
   #append data together
@@ -164,7 +170,6 @@ myuser <- ""
       select(countryname, iso, everything())
     
   #keep long version  
-    ### NOTE: VALUE IS NOT VOLUMNE FOR LAB
     df_sites_lng <- df_sites %>% 
       select(countryname, iso, region, orgunituid, latitude, longitude, indicator, value)
       
@@ -186,25 +191,23 @@ myuser <- ""
     
 
     # #checks
-    # df_lng <- df_sites %>% 
+    # df_lng <- df_sites %>%
     #   gather(indicator, reported, HTS_TST, LAB_PTCQI, SC_STOCK, TX_CURR, na.rm = TRUE)
     # 
-    # df_distinct <- df_sites %>% 
-    #   distinct(countryname, orgunituid) %>% 
+    # df_distinct <- df_sites %>%
+    #   distinct(countryname, orgunituid) %>%
     #   count(countryname, name = "total")
-    #   
-    #   
-    # df_lng %>% 
-    #   count(region, countryname, indicator) %>% 
-    #   spread(indicator, n) %>% 
-    #   left_join(df_distinct) %>% 
-    #   select(region, countryname, total, HTS_TST, TX_CURR, LAB_PTCQI, SC_STOCK) %>% 
-    #   arrange(region, countryname) %>% 
+    # 
+    # 
+    # df_lng %>%
+    #   count(region, countryname, indicator) %>%
+    #   spread(indicator, n) %>%
+    #   left_join(df_distinct) %>%
+    #   select(region, countryname, total, HTS_TST, TX_CURR, LAB_PTCQI, SC_STOCK) %>%
+    #   arrange(region, countryname) %>%
     #   janitor::adorn_totals()
     #   print(n = Inf)
-    #   
-    #   
-    #   df_stk %>% 
-    #     filter(orglvl_4 == "Guatemala") %>% 
-    #     select(`Organisation unit`, orgunituid, Value)
-  
+
+      
+      
+        
